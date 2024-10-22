@@ -2,16 +2,6 @@ from omegaDots import f1, f2
 import numpy as np
 import math
 
-# || INITIAL CONDITIONS
-theta1_0 = math.radians(0)
-theta2_0 = math.radians(3)
-omega1_0 = 0 # initially at rest
-omega2_0 = 0 # initially at rest
-
-t0 = 0
-tf = 100.
-steps = 10000
-
 def leapfrog(omega1_init, omega2_init, theta1_init, theta2_init, t_final, tSteps):
     # This function implements the leapfrog method of numerical integration
     #
