@@ -2,6 +2,7 @@ import numpy as np
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from omegaDots import f1, f2
 
 def rk4_step(f1, f2, omega1, omega2, theta1, theta2, deltaT):
         """
