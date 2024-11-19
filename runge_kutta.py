@@ -1,126 +1,107 @@
-# generic rk4 algorithm:
-def rk4_general(f, y0, t0, dt): 
-  f1 = f(y0, t0)
-  f2 = f(y0 + f1*dt/2, t0 + dt/2)
-  f3 = f(y0 + f2*dt/2, t0 + dt/2)
-  f4 = f(y0 + f3*dt, t0 + dt)
-  xout = y0 + (f1 + 2*f2 + 2*f3 + f4)*dt/6
-  return xout
+import numpy as np
+import numpy as np
+import math
+import matplotlib.pyplot as plt
 
-
-def rk4_step_omega1(f, y, t, dt, omega1, omega2, theta1, theta2):
-    # Use Runge-Kutta method to update each step for omega1 (f1)
-    k1 = f(omega1, omega2, theta1, theta2)
-    k2 = f(omega1 + 0.5 * k1 * dt, omega2, theta1, theta2)
-    k3 = f(omega1 + 0.5 * k2 * dt, omega2, theta1, theta2)
-    k4 = f(omega1 + k3 * dt, omega2, theta1, theta2)
-
-    return y + (k1 + 2*k2 + 2*k3 + k4) * dt / 6
-
-
-def rk4_step_omega2(f, y, t, dt, omega1, omega2, theta1, theta2):
-    # Use Runge-Kutta method to update each step for omega2 (f2)
-    k1 = f(omega1, omega2, theta1, theta2)
-    k2 = f(omega1, omega2 + 0.5 * k1 * dt, theta1, theta2)
-    k3 = f(omega1, omega2 + 0.5 * k2 * dt, theta1, theta2)
-    k4 = f(omega1, omega2 + k3 * dt, theta1, theta2)
-
-    return y + (k1 + 2*k2 + 2*k3 + k4) * dt / 6
-
-
-def rk4(omega1_init, omega2_init, theta1_init, theta2_init, t_final, tSteps):
-    #this is a rather faulty implementation of Rungekutta to solve this problem. Id like to keep it here for the time being as we work through this project. 
-    # For a better impletmentaion of RK4 see the funciton below labeled "rk4_careful()" 
-  # a limitation of this function is that theta1 and theta2 are iterated using euler steps which lack the precision of RK4
-  
-    t0 = 0
-    deltaT = t_final / tSteps
-
-    # time array
-    tList = np.arange(t0, t_final, deltaT)
-
-    # store results
-    omega1List = []
-    omega2List = []
-    theta1List = []
-    theta2List = []
-
-    # Initialize
-    omega1 = omega1_init
-    omega2 = omega2_init
-    theta1 = theta1_init
-    theta2 = theta2_init
-
-    
-    for t in tList:
-        # add updates to lists
-        omega1List.append(omega1)
-        omega2List.append(omega2)
-        theta1List.append(theta1)
-        theta2List.append(theta2)
-
-        # use rk4_step update 
-        omega1 = rk4_step_omega1(f1, omega1, t, deltaT, omega1, omega2, theta1, theta2)
-        omega2 = rk4_step_omega2(f2, omega2, t, deltaT, omega1, omega2, theta1, theta2)
-        theta1 += omega1 * deltaT  # Update angles directly using angular velocity
-        theta2 += omega2 * deltaT
-
-    return omega1List, omega2List, theta1List, theta2List, tList
-
-
-
-def rk4_careful(omega1_init, omega2_init, theta1_init, theta2_init, t_final, tSteps):
-  #this function is better than the previous one because there is a unique k for each variable: omega1, omega2, theta1, theta2
-
-  t0 = 0
-
-    deltaT = t_final/tSteps
-    
-    tList = np.arange(t0, t_final, step=deltaT)
-    omega1List = []
-    omega2List = []
-    theta1List = []
-    theta2List = []
-
-    omega1 = omega1_init
-    omega2 = omega2_init
-    theta1 = theta1_init
-    theta2 = theta2_init
-
-    for t in tList:
-        # update lists
-        omega1List.append(omega1)
-        omega2List.append(omega2)
-        theta1List.append(theta1)
-        theta2List.append(theta2)
-
-        #RK4 updates notice
-        #K1
+def rk4_step(f1, f2, omega1, omega2, theta1, theta2, deltaT):
+        """
+        Perform a single RK4 step for omega1, omega2, theta1, and theta2.
+        """
+        # K1
         k1_omega1 = deltaT * f1(omega1, omega2, theta1, theta2)
         k1_omega2 = deltaT * f2(omega1, omega2, theta1, theta2)
         k1_theta1 = deltaT * omega1
         k1_theta2 = deltaT * omega2
-        #k2
-        k2_omega1 = deltaT * f1(omega1 + k1_omega1/2, omega2 + k1_omega2/2, theta1 + k1_theta1/2, theta2 + k1_theta2/2)
-        k2_omega2 = deltaT * f2(omega1 + k1_omega1/2, omega2 + k1_omega2/2, theta1 + k1_theta1/2, theta2 + k1_theta2/2)
-        k2_theta1 = deltaT * (omega1 + k1_omega1/2)
-        k2_theta2 = deltaT * (omega2 + k1_omega2/2)
-        #K3
-        k3_omega1 = deltaT * f1(omega1 + k2_omega1/2, omega2 + k2_omega2/2, theta1 + k2_theta1/2, theta2 + k2_theta2/2)
-        k3_omega2 = deltaT * f2(omega1 + k2_omega1/2, omega2 + k2_omega2/2, theta1 + k2_theta1/2, theta2 + k2_theta2/2)
-        k3_theta1 = deltaT * (omega1 + k2_omega1/2)
-        k3_theta2 = deltaT * (omega2 + k2_omega2/2)
-        #K4
+        # K2
+        k2_omega1 = deltaT * f1(omega1 + k1_omega1 / 2, omega2 + k1_omega2 / 2, theta1 + k1_theta1 / 2, theta2 + k1_theta2 / 2)
+        k2_omega2 = deltaT * f2(omega1 + k1_omega1 / 2, omega2 + k1_omega2 / 2, theta1 + k1_theta1 / 2, theta2 + k1_theta2 / 2)
+        k2_theta1 = deltaT * (omega1 + k1_omega1 / 2)
+        k2_theta2 = deltaT * (omega2 + k1_omega2 / 2)
+        # K3
+        k3_omega1 = deltaT * f1(omega1 + k2_omega1 / 2, omega2 + k2_omega2 / 2, theta1 + k2_theta1 / 2, theta2 + k2_theta2 / 2)
+        k3_omega2 = deltaT * f2(omega1 + k2_omega1 / 2, omega2 + k2_omega2 / 2, theta1 + k2_theta1 / 2, theta2 + k2_theta2 / 2)
+        k3_theta1 = deltaT * (omega1 + k2_omega1 / 2)
+        k3_theta2 = deltaT * (omega2 + k2_omega2 / 2)
+        # K4
         k4_omega1 = deltaT * f1(omega1 + k3_omega1, omega2 + k3_omega2, theta1 + k3_theta1, theta2 + k3_theta2)
         k4_omega2 = deltaT * f2(omega1 + k3_omega1, omega2 + k3_omega2, theta1 + k3_theta1, theta2 + k3_theta2)
         k4_theta1 = deltaT * (omega1 + k3_omega1)
         k4_theta2 = deltaT * (omega2 + k3_omega2)
 
-        #new values are Initial value + weighted average of the updates 
-        omega1 = omega1 + (k1_omega1 + 2*k2_omega1 + 2*k3_omega1 + k4_omega1)/6
-        omega2 = omega2 + (k1_omega2 + 2*k2_omega2 + 2*k3_omega2 + k4_omega2)/6
-        theta1 = theta1 + (k1_theta1 + 2*k2_theta1 + 2*k3_theta1 + k4_theta1)/6
-        theta2 = theta2 + (k1_theta2 + 2*k2_theta2 + 2*k3_theta2 + k4_theta2)/6
+        # Compute next values
+        omega1_next = omega1 + (k1_omega1 + 2 * k2_omega1 + 2 * k3_omega1 + k4_omega1) / 6
+        omega2_next = omega2 + (k1_omega2 + 2 * k2_omega2 + 2 * k3_omega2 + k4_omega2) / 6
+        theta1_next = theta1 + (k1_theta1 + 2 * k2_theta1 + 2 * k3_theta1 + k4_theta1) / 6
+        theta2_next = theta2 + (k1_theta2 + 2 * k2_theta2 + 2 * k3_theta2 + k4_theta2) / 6
 
-    return omega1List, omega2List, theta1List, theta2List, tList
+        return omega1_next, omega2_next, theta1_next, theta2_next
+
+def rk4_adaptive(omega1_init, omega2_init, theta1_init, theta2_init, t_final, deltaT_init=0.01, tol = 0.00001):
+
+    # Initialize variables
+    i = 0
+    t = 0
+    deltaT = deltaT_init
+    omega1, omega2, theta1, theta2 = omega1_init, omega2_init, theta1_init, theta2_init
+
+    # Lists to store results
+    tList = [t]
+    omega1List = [omega1]
+    omega2List = [omega2]
+    theta1List = [theta1]
+    theta2List = [theta2]
+
+
+    # main loop 
+    while t < t_final:
+        i += 1 # index for counting and trouble shooting
+      
+        # Compute 2 RK4 steps with current deltaT
+        mid_omega1, mid_omega2, mid_theta1, mid_theta2 = rk4_step(f1, f2, omega1, omega2, theta1, theta2, deltaT )
+        omega1_rk4, omega2_rk4, theta1_rk4, theta2_rk4 = rk4_step(f1, f2, mid_omega1, mid_omega2, mid_theta1, mid_theta2, deltaT )
+        # Compute RK4 step with double deltaT
+        omega1_rk4_double, omega2_rk4_double, theta1_rk4_double, theta2_rk4_double = rk4_step(f1, f2, omega1, omega2, theta1, theta2, 2 * deltaT)
+
+
+        # Error estimate (difference between single and double step)
+        # because the time step is used for all for updates , only the higheset error value of the 4 variables are used to control the adaptive time step
+        error_omega1 = np.abs(omega1_rk4 - omega1_rk4_double)
+        error_omega2 = np.abs(omega2_rk4 - omega2_rk4_double)
+        error_theta1 = np.abs(theta1_rk4 - theta1_rk4_double)
+        error_theta2 = np.abs(theta2_rk4 - theta2_rk4_double)
+        max_error = max(error_omega1, error_omega2, error_theta1, error_theta2)
+        
+        #bad things happen when the errors all = 0 , so when this happens accept the step without calculating rho
+        # the deltaT with be changed to 2deltaT
+        if max_error == 0:
+          rho = 1000
+        
+        else:
+          rho = 30 * deltaT * tol / max_error #eqn 8.53 pg 358
+
+        # Adjust time step based on error
+        #if max_error < tol:
+        if rho > 1:
+            # Accept step
+            # advance t by this deltaT
+            t += deltaT
+            #assign accepted values to lists
+            omega1, omega2, theta1, theta2 = omega1_rk4, omega2_rk4, theta1_rk4, theta2_rk4
+            tList.append(t)
+            omega1List.append(omega1)
+            omega2List.append(omega2)
+            theta1List.append(theta1)
+            theta2List.append(theta2)
+            
+            #Increase deltaT to  --> h'
+      
+            deltaT *= min(2,rho ** 0.25) #8.52
+            #print(f"{i}up, t={t}, deltaT={deltaT}, max_error={max_error}, rho={rho}")
+            
+        else:
+            # Reject step and deltaT --> h'
+            deltaT *= max(.5,rho ** 0.25)
+            #print(f"{i}down, t={t}, deltaT={deltaT}, max_error={max_error}, rho={rho}")
+
+    return omega1List, omega2List, theta1List, theta2List, tList,
 
