@@ -84,8 +84,8 @@ def rk4_adaptive(omega1_init, omega2_init, theta1_init, theta2_init, t_final, de
         #if max_error < tol:
         if rho > 1:
             # Accept step
-            # advance t by this deltaT
-            t += deltaT
+            # advance t by this deltaT *2
+            t += 2 * deltaT
             #assign accepted values to lists
             omega1, omega2, theta1, theta2 = omega1_rk4, omega2_rk4, theta1_rk4, theta2_rk4
             tList.append(t)
